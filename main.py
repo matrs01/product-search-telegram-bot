@@ -31,14 +31,25 @@ def choose_shop(message: telebot.types.Message):
 
     query = message.text
 
-    message = bot.send_message(
-        chat_id=message.chat.id,
-        text="Select shop:",
-        reply_markup=keyboard
-    )
+    if any(greeting in query.lower() for greeting in cfg.GREETINGS):
+        greet(message)
 
-    bot.register_next_step_handler(
-        message, callback=callback_worker, query=query)
+    else:
+        message = bot.send_message(
+            chat_id=message.chat.id,
+            text="Select shop:",
+            reply_markup=keyboard
+        )
+
+        bot.register_next_step_handler(
+            message, callback=callback_worker, query=query)
+
+
+def greet(message):
+    bot.send_message(
+        message.chat.id, "Hi! Welcome to product search bot.")
+    bot.send_message(
+        message.chat.id, "Specify the product you are looking for.")
 
 
 def callback_worker(message: telebot.types.Message, query):
@@ -63,16 +74,17 @@ def callback_worker(message: telebot.types.Message, query):
         send_items(message, item_list)
 
     elif any(greeting in message.text.lower() for greeting in cfg.GREETINGS):
-        bot.send_message(
-            message.chat.id, "Hi! Welcome to product search bot.")
+        greet(message)
+        return
+
     bot.send_message(
-        message.chat.id, "Specify the product you are looking for.")
+        message.chat.id, "Would you like to search for anything else? Just tell me the product.")
 
 
 def send_items(message, item_list):
     if len(item_list) == 0:
         bot.send_message(
-            message.chat.id, "Sorry, connection error. Try Again")
+            message.chat.id, "Sorry, no results.")
     else:
         for item in item_list:
             bot.send_photo(message.chat.id, item.pic,
